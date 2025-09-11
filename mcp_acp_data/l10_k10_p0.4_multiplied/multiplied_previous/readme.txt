@@ -1,0 +1,3 @@
+This is the old version that I multiply edge values by 1,2,4,6,8, which means that the edge values can be larger than 1. But then I realize that it is not ok to evaluate it with some clustering algorithms, and also it is not follow my initial idea of just change the range but keep the inside distance among those values.
+
+So I go to the second version, where I add edge values by 0.1, to 0.5. and make sure all values is within 1 or equal to 1. It couldn't be equal to 1 because random.uniform(0,1) can not be 1.
