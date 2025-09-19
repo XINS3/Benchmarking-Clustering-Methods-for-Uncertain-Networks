@@ -18,6 +18,9 @@ def gmm(G, k):
     dist = {u: {v: inf for v in nodes} for u in nodes}
     for u, dd in nx.all_pairs_dijkstra_path_length(G, weight='weight'):
         dist[u].update(dd)
+
+    for u in nodes:
+        print('node: ',u,' ', dist[u])
     #dist=dict(nx.all_pairs_dijkstra_path_length(G,None,'weight'))
     
     mindist = {v: dist[centers[0]][v] for v in nodes}
