@@ -8,7 +8,9 @@ cd Evaluation
 ## How to reproduce figures in the paper?
   * Figure.5 - Figure.8 run:
     
-     ``` python Experiments_on_real-world_datasets_RQ1.py```
+     ```
+    python Experiments_on_real-world_datasets_RQ1.py
+     ```
     
   * Figure.9 - Figure.10 run:
     
