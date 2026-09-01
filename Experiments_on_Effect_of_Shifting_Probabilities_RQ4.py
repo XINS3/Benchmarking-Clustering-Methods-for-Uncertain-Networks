@@ -1,5 +1,5 @@
 # calculate AMI
-
+'''
 import json
 from sklearn.metrics.cluster import adjusted_mutual_info_score as ami
 from Expected_mod import Trans_C1, Trans_C2, APWP
@@ -9,7 +9,7 @@ l=10
 cc=[i for i in range(k*l)]
     
 stad_cluster=[cc[x:x+l] for x in range(0, len(cc), l)]
-print(stad_cluster)
+#print(stad_cluster)
 
 # bayes
 multi_bayes=[0.0,0.1,0.2,0.3,0.4,0.5]
@@ -30,7 +30,7 @@ mod_mcp=[]
 for _ in data:
     multi_mcp.append(float(_))
     ami_mcp.append(ami(Trans_C2(stad_cluster,k*l),Trans_C2(data[str(_)],k*l)))
-print(ami_mcp)
+
 
 #acp
 
@@ -104,55 +104,71 @@ for _ in data:
 
 ##################################
 
+
 # draw Figure 9: AMI values with different ranges of edge probabilities.
 
 import matplotlib.pyplot as plt
-from matplotlib.cm import get_cmap
 
-
+print('acp', ami_acp)
+print('mcp', ami_mcp)
+print('gmm', ami_gmm)
+#ami_acp.reverse()
 data= [ami_mcp,ami_acp,ami_pwik,ami_bayes,ami_embed,ami_louvain,ami_gmm,ami_info]
 X= [ multi_mcp,multi_acp,multi_pwik,multi_bayes,multi_embed,multi_louvain,multi_gmm,multi_info]
-colors = get_cmap('tab10').colors #colors=['k', 'limegreen', 'saddlebrown', 'royalblue','cyan','tomato','gold','magenta']
+colors = plt.get_cmap('tab10').colors #colors=['k', 'limegreen', 'saddlebrown', 'royalblue','cyan','tomato','gold','magenta']
 markers = ['o', 's', 'D', '^', 'v', '<', '>', 'p', '*']
-linestyles = ['--', '--', '-.', ':', '--', '--', '-.', ':', '--']
+#linestyles = ['--', '--', '-.', ':', '--', '--', '-.', ':', '--']
 labels = ['MCP', 'ACP','Pkwikcluster', 'Bayes','URGE','Louvain', 
           'GMM', 'Infomap']
 
-plt.figure(figsize=(10, 6))
+fig,ax = plt.subplots(figsize=(10, 7))
 for i in range(len(data)):
      
-    plt.plot(
+    ax.plot(
         X[i], data[i],
-        label=labels[i],
-        marker=markers[i],
-        markersize=6,                     # Smaller marker
-        linestyle=linestyles[i % len(linestyles)],#linestyle='-',                   # Line added
-        linewidth=1.2,                   # Visible but clean line
-        markerfacecolor=colors[i % len(colors)],
-        markeredgewidth=0.5,  
         color=colors[i % len(colors)],
-        markeredgecolor='black'  
+        marker=markers[i],
+        #linestyle=linestyles[i % len(linestyles)],
+        #markerfacecolor='white',   # hollow markers for B/W clarity
+        linewidth=1.5,
+        markeredgewidth=1.0,
+        markeredgecolor=colors[i % len(colors)],
+        label=labels[i] 
     )
 
-
+ax.set_xlabel('Shifting range', fontsize=17, fontweight='bold')
+ax.set_ylabel('AMI', fontsize=17, fontweight='bold')
 plt.tight_layout()
+#plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.5)
+ax.grid(False)
+plt.minorticks_off() 
+ax.tick_params(axis='both', labelsize=17)
 
+# legend outside, below the plot
+ax.legend(
+    loc='upper center',
+    bbox_to_anchor=(0.5, -0.18),
+    ncol=4,                  # change to 4 if you want fewer rows
+    frameon=True,
+    fontsize=15
+)
 
-plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.5)
-plt.minorticks_on() 
+# make room for the outside legend
+plt.subplots_adjust(bottom=0.28)
+plt.savefig('fig//ami_multiplied_v3.pdf',bbox_inches='tight', pad_inches=0.1)
+plt.show()
 
-plt.legend()
-plt.xlabel('Shifting range')
-plt.ylabel('AMI')
-#plt.savefig('fig//ami_multiplied.pdf',bbox_inches='tight', pad_inches=0.1)
-
+'''
 ####################################################
 
-# calculate expected modularity
 
+# calculate expected modularity
+'''
 import json
 import load_graph
 from Expected_mod import APWP
+
+path='mcp_acp_data//l10_k10_p0.4_multiplied//new//'
 
 # 读各算法结果（和图无关，只读一次）
 path2='mcp_results//'
@@ -183,9 +199,12 @@ path2='embedding//'
 with open(path+path2+'embedding_l10_k10_p0.4_multiplied.json','r') as fp:
     data_embed=json.load(fp)
 
-
-for i in range(5):
-    g = load_graph.read_g(path + f'datasets//k10_l10_p0.4_multi0{i}.txt')
+mod_acp=[]
+mod_mcp=[]
+mod_gmm=[]
+for i in range(6):
+    g = load_graph.read_g(f'datasets//l10_k10_p0.4_multiplied//new_version//k10_l10_p0.4_multi0.{i}.txt')
+    #datasets/l10_k10_p0.4_multiplied/new_version/k10_l10_p0.4_multi0.0.txt
     edge=[]
     P=[]
     for (u,v,p) in g.edges(data=True):
@@ -193,69 +212,99 @@ for i in range(5):
         P.append(p['weight'])
 
     print(f'\n=== k10_l10_p0.4_multi0{i}.txt ===')
-    for t in [f'{x/10:.1f}' for x in range(0, 6)]:  # '0.0','0.1',...,'0.5'
-        print(f'-- threshold {t} --')
-        print('mcp-'+t,     APWP(edge, P, data_mcp[t]))
-        print('acp-'+t,     APWP(edge, P, data_acp[t]))
-        print('gmm-'+t,     APWP(edge, P, data_gmm[t]))
-        print('louvain-'+t, APWP(edge, P, data_louvain[t]))
-        print('info-'+t,    APWP(edge, P, data_info[t]))
-        print('pwik-'+t,    APWP(edge, P, data_pwik[t]))
-        print('embed-'+t,   APWP(edge, P, data_embed[t]))
+    
+    #acp = APWP(edge, P, data_acp[f'{i/10:.1f}']) # add by xin 2026-05-13
+    #mod_acp.append(acp)# add by xin 2026-05-13
+    #mcp = APWP(edge, P, data_mcp[f'{i/10:.1f}']) # add by xin 2026-05-14
+    #mod_mcp.append(mcp) # add by xin 2026-05-14
+    gmm = APWP(edge, P, data_gmm[f'{i/10:.1f}'])
+    mod_gmm.append(gmm)
+    print(g)
+    print('gmm', gmm)
+print('mod gmm', mod_gmm)
+    #for t in [f'{x/10:.1f}' for x in range(0, 6)]:  # '0.0','0.1',...,'0.5'
+    #    print(10*'-', f'threshold {t}', 10*'-')
+     
+        #acp = APWP(edge, P, data_acp[t]) # add by xin 2026-05-13
+        #mod_acp.append(acp)# add by xin 2026-05-13
+        # print(f'-- threshold {t} --')
+        # print('mcp-'+t,     APWP(edge, P, data_mcp[t]))
+        #print('acp-'+t,     APWP(edge, P, data_acp[t]))
+        # print('gmm-'+t,     APWP(edge, P, data_gmm[t]))
+        # print('louvain-'+t, APWP(edge, P, data_louvain[t]))
+        # print('info-'+t,    APWP(edge, P, data_info[t]))
+        # print('pwik-'+t,    APWP(edge, P, data_pwik[t]))
+        # print('embed-'+t,   APWP(edge, P, data_embed[t]))
+        
 
-
+#print('mod acp', mod_acp)# add by xin 2026-05-13
 #########################################
-
+'''
 # draw Figure 10: Expected modularity values with different ranges of edge probabili-
-ties.
+
 
 mod_baye=[-9.288864649273505e-05, -0.00027981222043274676, -0.0004015840793799629, -0.00039445824285477723, -0.00039834092173267083, -0.0004118062040204506]
 mod_mcp=[-0.0005838009802469737,0.006886465673644421,-0.00471407507279181,-0.0007715534386631739,0.0,0.0]
-mod_acp=[-0.002205994473070036,-0.0014570700110550976,0.0018634722423334252,-0.00024043329965680945,0.0,0.0]
+#mod_acp=[-0.002205994473070036,-0.0014570700110550976,0.0018634722423334252,-0.00024043329965680945,0.0,0.0]
 mod_gmm=[-0.005724299583617497,-0.011581277341184042,0.00575403365919621,0.020768968019775413,-0.025488262672617636,-0.008534643038367571]
 mod_louvain=[0.48928169032440977,0.4932368734171953,0.4944166148136377,0.49619868537861367,0.4971380081776314,0.4978242043071648]
 mod_info=[0.4862919942088216,0.4926004972944971,0.4932881587582906,0.493714744891231,0.49459220579731206,0.4947472202311584]
 mod_pwik=[-0.01358894713779342,0.12502803750450164,0.1761531049482185,0.16187756717672078,0.22090960932667564,0.2749405992359015]
 mod_embed=[0.4236765877932612,0.4448367259047611,0.4649242275623642,0.47939611456374587,0.47924347849574855,0.48560420386614417]
 
+# add by xin 2026-05-13
+mod_acp_v2=[0.3453783911599383, 0.43416962761913774, 0.33848132781565654, -5.548857540391448e-05, 0.0, 0.0]
 
+# add by xin 2026-05-14
+mod_mcp_v2 =[0.3263800960011982, 0.34740816018063964, 0.2843510798882491, 0.0015631719951097525, 0.0, 0.0]
+
+# add by xin 2026-05-14
+mod_gmm_v2=[0.30233193267046493, 0.25622501305056294, 0.2550567686105896, 0.26148210045392073, 0.25436711385595695, 0.23041723124800323]
 import matplotlib.pyplot as plt
-from matplotlib.cm import get_cmap
+#from matplotlib.cm import get_cmap
 
 
-data= [mod_mcp,mod_acp,mod_pwik,mod_baye,mod_embed,mod_louvain,mod_gmm,mod_info]
+#data= [mod_mcp,mod_acp,mod_pwik,mod_baye,mod_embed,mod_louvain,mod_gmm,mod_info] # comment by xin 2026-05-13
+data= [mod_mcp_v2,mod_acp_v2,mod_pwik,mod_baye,mod_embed,mod_louvain,mod_gmm_v2,mod_info] # add by xin 2026-05-14
 X= [ 0.0,0.1,0.2,0.3,0.4,0.5]
-colors = get_cmap('tab10').colors #colors=['k', 'limegreen', 'saddlebrown', 'royalblue','cyan','tomato','gold','magenta']
+colors = plt.get_cmap('tab10').colors #colors=['k', 'limegreen', 'saddlebrown', 'royalblue','cyan','tomato','gold','magenta']
 markers = ['o', 's', 'D', '^', 'v', '<', '>', 'p', '*']
-linestyles = ['--', '--', '-.', ':', '--', '--', '-.', ':', '--']
+#linestyles = ['--', '--', '-.', ':', '--', '--', '-.', ':', '--']
 labels = ['MCP', 'ACP','Pkwikcluster', 'Bayes','URGE','Louvain', 
           'GMM', 'Infomap']
 
-plt.figure(figsize=(10, 6))
+fig,ax=plt.subplots(figsize=(10, 7))
 for i in range(len(data)):
      
     plt.plot(
         X, data[i],
-        label=labels[i],
-        marker=markers[i],
-        markersize=6,                     # Smaller marker
-        linestyle=linestyles[i % len(linestyles)],#linestyle='-',                   # Line added
-        linewidth=1.2,                   # Visible but clean line
-        markerfacecolor=colors[i % len(colors)],
-        markeredgewidth=0.5,  
         color=colors[i % len(colors)],
-        markeredgecolor='black'  
+        marker=markers[i],
+        #linestyle=linestyles[i % len(linestyles)],
+        #markerfacecolor='white',   # hollow markers for B/W clarity
+        linewidth=1.5,
+        markeredgewidth=1.0,
+        markeredgecolor=colors[i % len(colors)],
+        label=labels[i]  
     )
-
+ax.set_xlabel('Shifting range', fontsize=17, fontweight='bold')
+ax.set_ylabel('Expected Modularity', fontsize=17, fontweight='bold')    
 plt.tight_layout()
+#plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.5)
+ax.grid(False)
+plt.minorticks_off() 
+ax.tick_params(axis='both', labelsize=17)
 
+# legend outside, below the plot
+ax.legend(
+    loc='upper center',
+    bbox_to_anchor=(0.5, -0.18),
+    ncol=4,                  # change to 4 if you want fewer rows
+    frameon=True,
+    fontsize=15
+)
 
-plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.5)
-plt.minorticks_on() 
-
-plt.legend()
-plt.xlabel('Shifting range')
-plt.ylabel('Expected Modularity')
-#plt.savefig('fig//expMod_multiplied.pdf',bbox_inches='tight', pad_inches=0.1)
-
-
+# make room for the outside legend
+plt.subplots_adjust(bottom=0.28)
+plt.savefig('fig//expMod_multiplied_v3.pdf',bbox_inches='tight', pad_inches=0.1)
+plt.show()

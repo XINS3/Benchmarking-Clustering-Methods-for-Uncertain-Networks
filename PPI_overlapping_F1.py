@@ -1,5 +1,9 @@
 
 import json
+import pandas as pd 
+from collections import defaultdict
+
+from Expected_mod import Trans_C1
 def read_clustering(file):
     '''
     Reads a clustering from a file and returns it as a list of sets.
@@ -150,22 +154,58 @@ ppwik='pwik_results'
 pbaye='baye_results'
 pembedding='embedding_results'
 
-#with open(path+pacpc+'//acpc_k188.json','r') as fp: #core
-with open(path+pacpc+'//acpc_k195.json','r') as fp: #extended
+#with open(path+pacpc+'//krogan2006_core_mips_net.json','r') as fp: #core
+with open(path+pacpc+'//krogan2006_extented_mips_net.json','r') as fp: #extended
     data_acpc=json.load(fp)
+
+clusters = defaultdict(list)
+for row in data_acpc["tables"]["clustering"]:
+    #clusters[str(row["center"])].append(int(row["label"])) #comment by xin
+    clusters[str(row["clabel"])].append(int(row["label"])) #add by xin
+cluster_list = list(clusters.values())
+data_acpc = {
+    str(len(cluster_list)): cluster_list
+}
 pre_acpc=list(data_acpc.values())[0]
-#print(pre_acpc)
+'''
+
+clustering_df=pd.DataFrame(data_acpc['tables']['clustering'])
+
+pre_acpc=Trans_C1(list(clustering_df['clabel'])) # comment by xin, this is defaulted following 'id' instead of 'label' using Trans_C1
+'''
+#print('acpc cluster:\n',pre_acpc)
 f1_acpc=best_match_f1(truth_cluster,pre_acpc)
 print('acpc F1:',f1_acpc)
-#with open(path+path_mcpc+'//mcpc_k188.json','r') as fp:#core
-with open(path+path_mcpc+'//mcpc_k195.json','r') as fp:#extended
+#with open(path+path_mcpc+'//krogan2006_core_mips_net.json','r') as fp:#core
+with open(path+path_mcpc+'//krogan2006_extented_mips_net.json','r') as fp:#extended
     data_mcpc=json.load(fp)
+# transform clustering result to dict of cluster label to list of node ids
+clusters = defaultdict(list)
+for row in data_mcpc["tables"]["clustering"]:
+    #clusters[str(row["center"])].append(int(row["label"])) #comment by xin
+    clusters[str(row["center"])].append(int(row["label"])) #add by xin
+cluster_list = list(clusters.values())
+data_mcpc = {
+    str(len(cluster_list)): cluster_list
+}
+#--
+#cluster=Trans_C1(list(clustering_df['clabel']))
+#mcpc_clustering.update({k:cluster})
 pre_mcpc=list(data_mcpc.values())[0]
 f1_mcpc=best_match_f1(truth_cluster,pre_mcpc)
 print('mcpc F1:',f1_mcpc)
-#with open(path+pgmm+'//gmm_k188.json','r') as fp:#core
-with open(path+pgmm+'//gmm_k195.json','r') as fp:#extended
+#with open(path+pgmm+'//krogan2006_core_mips_net.json','r') as fp:#core
+with open(path+pgmm+'//krogan2006_extented_mips_net.json','r') as fp:#extended
     data_gmm=json.load(fp)
+
+clusters = defaultdict(list)
+for row in data_gmm["tables"]["clustering"]:
+    #clusters[str(row["center"])].append(int(row["label"])) #comment by xin
+    clusters[str(row["center"])].append(int(row["label"])) #add by xin
+cluster_list = list(clusters.values())
+data_gmm = {
+    str(len(cluster_list)): cluster_list
+}
 pre_gmm=list(data_gmm.values())[0]
 f1_gmm=best_match_f1(truth_cluster,pre_gmm)
 print('gmm F1:',f1_gmm)
@@ -174,8 +214,8 @@ with open(path+plouvain+'//louvain.json','r') as fp:
 pre_louvain=list(data_louvain.values())[0]
 f1_louvain=best_match_f1(truth_cluster,pre_louvain)
 print('louvain F1:',f1_louvain)
-#with open(path+pinfo+'//infomap.json','r') as fp: #core
-with open(path+pinfo+'//infomap.json','r') as fp: #extended
+with open(path+pinfo+'//infomap.json','r') as fp: #core
+#with open(path+pinfo+'//infomap.json','r') as fp: #extended
     data_Infomap=json.load(fp)
 pre_Infomap=list(data_Infomap.values())[0]
 f1_Infomap=best_match_f1(truth_cluster,pre_Infomap)
